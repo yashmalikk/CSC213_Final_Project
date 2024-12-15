@@ -35,13 +35,3 @@ void encrypt(char* input, char* encrypted, long k, long m);
  */
 void decrypt(char* input, char* decrypted, long p, long q, long k);
 
-// Legacy functions (marked as deprecated)
-#ifdef __GNUC__
-#define DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define DEPRECATED __declspec(deprecated)
-#else
-#define DEPRECATED
-#endif
-
-DEPRECATED void get_primes_based_on_uid(uid_t uid, int *prime1, int *prime2);
