@@ -153,3 +153,4 @@ void decrypt()
     for (i = 0; m[i] != -1; i++)
         printf("%c", (char)m[i]);
 }
+
