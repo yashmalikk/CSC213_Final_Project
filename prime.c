@@ -1,36 +1,31 @@
-/* File: prime.c */
 #include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "prime.h"
+#include <unistd.h>
+#include <stdbool.h>
 
-#define HASH_CHUNK_SIZE 4 // Use 4 bytes of the hash to create a number
-
-// Helper function to check if a number is prime
-int is_prime(unsigned long num) {
-    if (num < 2) return 0;
-    for (unsigned long i = 2; i <= sqrt(num); i++) {
-        if (num % i == 0) return 0;
+// Function to check if a number is prime
+bool is_prime(int num) {
+    if (num <= 1) return false;
+    for (int i = 2; i * i <= num; i++) {
+        if (num % i == 0) return false;
     }
-    return 1;
+    return true;
 }
 
-// Derive a prime number from the hash
-unsigned long derive_prime(const unsigned char *hash, int index) {
-    unsigned long candidate = 0;
-
-    // Extract 4 bytes from the hash starting at the given index
-    for (int i = 0; i < HASH_CHUNK_SIZE; i++) {
-        candidate = (candidate << 8) | hash[(index * HASH_CHUNK_SIZE + i) % HASH_LENGTH];
+// Function to find the next prime number greater than or equal to 'start'
+int next_prime(int start) {
+    while (!is_prime(start)) {
+        start++;
     }
+    return start;
+}
 
-    // Ensure candidate is odd (prime numbers > 2 are odd)
-    if (candidate % 2 == 0) candidate++;
+// Function to return two prime numbers based on the UID
+void get_primes_based_on_uid(uid_t uid, int *prime1, int *prime2) {
+    // Use the UID to generate two different primes deterministically
+    int first_prime = next_prime(uid + 10);  // Adding some offset to get a prime greater than UID
+    int second_prime = next_prime(first_prime + 10);  // Getting a second prime after the first
 
-    // Find the next prime number
-    while (!is_prime(candidate)) {
-        candidate += 2;
-    }
-
-    return candidate;
+    // Store the result in the provided pointers
+    *prime1 = first_prime;
+    *prime2 = second_prime;
 }
