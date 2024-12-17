@@ -22,7 +22,7 @@ long generateRandomNumber(long lower, long upper);
  * @param k The public exponent
  * @param m The modulus (product of two primes)
  */
-void encrypt(char* input, char* encrypted, long k, long m);
+void rsa_encrypt(char* input, char* encrypted, long k, long m);
 
 /**
  * Decrypts an RSA-encrypted string.
@@ -33,5 +33,5 @@ void encrypt(char* input, char* encrypted, long k, long m);
  * @param q The second prime number used in encryption
  * @param k The public exponent used in encryption
  */
-void decrypt(char* input, char* decrypted, long p, long q, long k);
+void rsa_decrypt(char* input, char* decrypted, long p, long q, long k);
 

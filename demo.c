@@ -9,8 +9,8 @@
 
 // Function declarations from utility.c that we'll need
 extern void twoPrimes(long* primeA, long* primeB);
-extern void encrypt(char* input, char* encrypted, long k, long m);
-extern void decrypt(char* input, char* decrypted, long p, long q, long k);
+extern void rsa_encrypt(char* input, char* encrypted, long k, long m);
+extern void rsa_decrypt(char* input, char* decrypted, long p, long q, long k);
 
 int main() {
     // Initialize variables
@@ -30,7 +30,7 @@ int main() {
     printf("Modulus (m = p * q): %ld\n", m);
     
     // Get message from user
-    printf("\nEnter a message to encrypt: ");
+    printf("\nEnter a message to rsa_encrypt: ");
     if (fgets(message, MAX_MESSAGE_LENGTH, stdin) == NULL) {
         fprintf(stderr, "Error reading input\n");
         return 1;
@@ -39,12 +39,12 @@ int main() {
     
     // Encrypt the message
     printf("\nEncrypting message...\n");
-    encrypt(message, encrypted, k, m);
+    rsa_encrypt(message, encrypted, k, m);
     printf("Encrypted message: %s\n", encrypted);
     
     // Decrypt the message
     printf("\nDecrypting message...\n");
-    decrypt(encrypted, decrypted, p, q, k);
+    rsa_decrypt(encrypted, decrypted, p, q, k);
     printf("Decrypted message: %s\n", decrypted);
     
     // Verify the decryption
