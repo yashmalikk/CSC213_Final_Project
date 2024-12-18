@@ -1,6 +1,7 @@
-#pragma once
-
 #include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
