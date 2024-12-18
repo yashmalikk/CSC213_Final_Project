@@ -92,8 +92,8 @@ bool exchange_keys(int socket_fd, PublicKeyPair* public_key, PublicKeyPair* peer
 }
 
 int main(int argc, char** argv) {
-    if (argc != 4) {
-        fprintf(stderr, "Usage: %s <my port> <other machine name> <other port>\n", argv[0]);
+    if (argc != 5) {
+        fprintf(stderr, "Usage: %s <my port> <other machine name> <other port> <name_of_recipient> \n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
     // Set up secure connection info
     secure_connection_info connection = {
         .socket_fd = conn_fd,
-        .name = "Other"
+        .name = argv[4]
     };
 
     PublicKeyPair my_public_key;
