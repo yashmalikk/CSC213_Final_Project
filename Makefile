@@ -17,7 +17,7 @@ OBJ = $(SRC:.c=.o)
 EXEC = secure_communication
 
 # Default target
-all: $(EXEC)
+all: clean $(EXEC)
 
 # Rule to create the executable
 $(EXEC): $(OBJ)
@@ -27,9 +27,10 @@ $(EXEC): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Rule to clean up object files and executable
+# Rule to clean up object files, executable, and .keys directory
 clean:
 	rm -f $(OBJ) $(EXEC)
+	rm -rf .keys
 
 # Rule to run the program
 run: $(EXEC)
