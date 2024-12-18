@@ -97,8 +97,8 @@ void generate_key_pair(PublicKeyPair* public_key, PrivateKeyPair* private_key) {
     // Calculate Euler's totient
     long phi = (p - 1) * (q - 1);
     
-    // Choose public exponent (commonly 65537)
-    long e = 65537;  // A common choice that's efficient and secure
+    // Choose public exponent (commonly 65537 in RSA cuz it's efficient)
+    long e = 65537; 
     
     // Set up public key
     public_key->public_key = e;

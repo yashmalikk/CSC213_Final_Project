@@ -11,7 +11,11 @@
 #include "key_management.h"
 #include "utility.h"
 
-
+/**
+ * secure_connection_info holds the information for each connection.
+ * peer_key: public key pair of the other computer
+ * my_key: struct that holds public/private keys
+ */
 typedef struct {
     int socket_fd;
     char* name;
@@ -19,13 +23,16 @@ typedef struct {
     struct {
         long p;
         long q;
-        long e;
+        long e; // a.k.a. 'k'
         long phi;
-        long modulus;
+        long modulus; // a.k.a. 'm'
     } my_key;
 } secure_connection_info;
 
-
+/**
+ * thread responsible for receiving incoming messages
+ * \param arg pointer that stores the secure_connection_info
+ */
 void* receive_thread(void* arg) {
     secure_connection_info* info = (secure_connection_info*)arg;
     char* received;
@@ -40,10 +47,11 @@ void* receive_thread(void* arg) {
         }
 
         // Decrypt using rsa_decrypt
-        printf("\n %s", received); // TODO: earase later
+        printf("\n %s", received); // TODO: erase later
         rsa_decrypt(received, decrypted, info->my_key.p, info->my_key.q, info->my_key.e);
         printf("\n%s: %s\n", info->name, decrypted);
 
+        // If we get a "quit" msg, the receiving thread ends.
         if (strcmp(decrypted, "quit") == 0) {
             running = false;
         }
@@ -53,6 +61,12 @@ void* receive_thread(void* arg) {
     return NULL;
 }
 
+/**
+ * Exchange the keys by sending my public key and receiving the opponent's public key.
+ * \param socket_fd     socket_fd integer. 
+ * \param public_key    Pointer to the PublicKeyPair
+ * \param peer_key      Pointer to the oponent's publicKeyPair
+ */
 bool exchange_keys(int socket_fd, PublicKeyPair* public_key, PublicKeyPair* peer_key) {
     char key_message[256];
 
@@ -96,6 +110,7 @@ int main(int argc, char** argv) {
     }
 
     // Decide role based on ports
+    // We choose that the lower port is the client to ease the logic.
     bool i_am_client = (my_port < other_port);
 
     int conn_fd = -1;
@@ -144,7 +159,7 @@ int main(int argc, char** argv) {
 
     // Check if we have a stored key for this peer
     if (!has_stored_key(other_port)) {
-        // Generate our keys
+        // Generate our keys and save to the connection info
         twoPrimes(&connection.my_key.p, &connection.my_key.q);
         connection.my_key.modulus = connection.my_key.p * connection.my_key.q;
         connection.my_key.phi = (connection.my_key.p - 1) * (connection.my_key.q - 1);
