@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <math.h>
+#include <pthread.h>
 
 
 // Function to check if a number is prime
@@ -165,6 +166,137 @@ void rsa_encrypt(char* input, char* encrypted, long k, long m) {
     }
 }
 
+#include <pthread.h>
+
+// Struct to hold the data needed for each threads
+typedef struct {
+    char* input;           // Input encrypted string
+    char* decrypted;      // Output decrypted string
+    int start_block;      // Starting block number for this thread
+    int end_block;        // Ending block number for this thread
+    int m_digits;         // Number of digits in modulus (digits per character)
+    long p;              // First prime
+    long q;              // Second prime
+    long k;              // Public exponent
+    pthread_mutex_t* mutex; // Mutex for thread-safe writing to output
+} decrypt_thread_data;
+
+// Thread worker function
+void* decrypt_worker(void* arg) {
+    decrypt_thread_data* data = (decrypt_thread_data*)arg;
+    long m = data->p * data->q;
+    long phi = (data->p - 1) * (data->q - 1);
+    long d = mod_inverse(data->k, phi);
+    char* block = malloc(data->m_digits + 1);  // +1 for null terminator
+    
+    // Process assigned character blocks
+    for (int block_num = data->start_block; block_num < data->end_block; block_num++) {
+        // Calculate position in input string based on block number
+        int input_pos = block_num * data->m_digits;
+        
+        // Extract the full block of digits representing one character
+        strncpy(block, data->input + input_pos, data->m_digits);
+        block[data->m_digits] = '\0';
+        
+        // Convert block to number
+        long cipher = 0;
+        for (int j = 0; block[j] != '\0'; j++) {
+            cipher = cipher * 10 + (block[j] - '0');
+        }
+        
+        // Decrypt the block
+        long message = mod_pow(cipher, d, m);
+        char decrypted_char = (char)message;
+        
+        // Safely write to shared output buffer
+        pthread_mutex_lock(data->mutex);
+        data->decrypted[block_num] = decrypted_char;
+        pthread_mutex_unlock(data->mutex);
+    }
+    
+    free(block);
+    return NULL;
+}
+
+/**
+ * Decrypts RSA using threads. Read the description for `rsa_descript` function (does the same job, but without threads) for more details.
+ * \param input         Pointer to the input message
+ * \param decrypted     Pointer to where decrypted message will be stored
+ * \param p             First prime
+ * \param q             Second prime
+ * \param k             The exponent k
+ * \param num_threads   Number of threads to utilize
+ */
+void rsa_decrypt_threaded(char* input, char* decrypted, long p, long q, long k, int num_threads) {
+    if (!input || !decrypted) return;
+    
+    // calculate required values
+    long m = p * q;
+    int m_digits = snprintf(NULL, 0, "%ld", m);  // digits p/ character block
+    int input_len = strlen(input);
+    
+    // calculate total number of complete character blocks
+    if (input_len % m_digits != 0) {
+        fprintf(stderr, "Error: Input length must be multiple of %d \n", m_digits);
+        return;
+    }
+    int total_blocks = input_len / m_digits;
+    
+    // initialize output string and mutex
+    memset(decrypted, 0, total_blocks + 1);
+    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    
+    // if we hav eless blocks that the thread amount, adjust the number of threads
+    if (num_threads > total_blocks) {
+        num_threads = total_blocks;
+    }
+    
+    // create thread data structures
+    pthread_t* threads = malloc(num_threads * sizeof(pthread_t));
+    decrypt_thread_data* thread_data = malloc(num_threads * sizeof(decrypt_thread_data));
+    
+    // calculate blocks per thread (working with complete character blocks)
+    int blocks_per_thread = total_blocks / num_threads;
+    int remaining_blocks = total_blocks % num_threads;
+    
+    // create and start threads
+    for (int i = 0; i < num_threads; i++) {
+        // calculate block numbers (not byte positions) for cur thread
+        int start_block = i * blocks_per_thread;
+        int end_block = (i + 1) * blocks_per_thread;
+        
+        // if it's the last theaad, add remaining blocks
+        if (i == num_threads - 1) {
+            end_block += remaining_blocks;
+        }
+        
+        thread_data[i] = (decrypt_thread_data){
+            .input = input,
+            .decrypted = decrypted,
+            .start_block = start_block,
+            .end_block = end_block,
+            .m_digits = m_digits,
+            .p = p,
+            .q = q,
+            .k = k,
+            .mutex = &mutex
+        };
+        
+        pthread_create(&threads[i], NULL, decrypt_worker, &thread_data[i]);
+    }
+    
+    // wait for all threads to complete
+    for (int i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+    
+    // clean up
+    pthread_mutex_destroy(&mutex);
+    free(threads);
+    free(thread_data);
+}
+
+
 /**
  * \param input encrypted string. ex "302923947953720598274058"
  * \param decrypted decrypted output string "hello"
@@ -172,7 +304,7 @@ void rsa_encrypt(char* input, char* encrypted, long k, long m) {
  * \param q one of the two primes
  * \param k the exponent used in encryption. Need this to decrypt. 
  * 
- * each letter is represented by characters in l digits. l should be the digit of p*q.
+ * Each letter is represented by characters in l digits. l should be the digit of p*q.
  * For example, if the encryption was done with m = p*q = 17 * 101 = 1717, every letter was encrypted to be a number that is at max 4 digits. 
  * So every 4 digits in the encrypted string corresponds to a letter and should be decrypted. 
  * For example, if the given string is "320300420481", 3203 needs to be decrypted, 0042 needs to be decrypted, 0481 needs to be decrypted.

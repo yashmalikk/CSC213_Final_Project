@@ -35,3 +35,6 @@ void rsa_encrypt(char* input, char* encrypted, long k, long m);
  */
 void rsa_decrypt(char* input, char* decrypted, long p, long q, long k);
 
+void rsa_decrypt_threaded(char* input, char* decrypted, long p, long q, long k, int num_threads);
+
+void* decrypt_worker(void* arg);

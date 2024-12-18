@@ -2,7 +2,7 @@
 
 #define MAX_MESSAGE_LENGTH 2048
 
-// Send a across a socket with a header that includes the message length. Returns non-zero value if
+// Send a message across a socket with a header that includes the message length. Returns non-zero value if
 // an error occurs.
 int send_message(int fd, char* message);
 

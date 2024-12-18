@@ -47,7 +47,7 @@ void* receive_thread(void* arg) {
         }
 
         // Decrypt using rsa_decrypt
-        rsa_decrypt(received, decrypted, info->my_key.p, info->my_key.q, info->my_key.e);
+        rsa_decrypt_threaded(received, decrypted, info->my_key.p, info->my_key.q, info->my_key.e, 4);
         printf("\n%s: %s\n", info->name, decrypted);
 
         // If we get a "quit" msg, the receiving thread ends.
