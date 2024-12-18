@@ -7,7 +7,7 @@
 #include <errno.h>
 
 #include "message.h"
-#include "socket.h"
+#include "socket.c"
 #include "key_management.h"
 #include "utility.h"
 
@@ -40,7 +40,6 @@ void* receive_thread(void* arg) {
         }
 
         // Decrypt using rsa_decrypt
-        printf("\n %s", received); // TODO: earase later
         rsa_decrypt(received, decrypted, info->my_key.p, info->my_key.q, info->my_key.e);
         printf("\n%s: %s\n", info->name, decrypted);
 
