@@ -211,6 +211,7 @@ int main(int argc, char** argv) {
 
     printf("You can now send messages. Type 'quit' to exit.\n");
     while (running) {
+        printf("You: ");
         if (fgets(message, sizeof(message), stdin) == NULL) {
             // EOF or error
             break;

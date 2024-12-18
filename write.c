@@ -21,12 +21,3 @@ int write_integer_to_file(const char *file_path, int number) {
   printf("Integer %d has been written to the file: %s\n", number, file_path);
   return 0;  // Return success code
 }
-
-int main() {
-  // Example usage: write the number 42 to "example.txt"
-  const char *file_path = "example.txt";
-  int number = 42;
-  
-  // Call the function to write the integer to the file
-  return write_integer_to_file(file_path, number);
-}
